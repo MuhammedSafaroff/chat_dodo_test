@@ -103,12 +103,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
-
-// client.send(
-//                     destination:
-//                         '/ws/v1/conversations/CN9556bcc9a7154218a5d97ac572a35671/sendMessage',
-//                     // headers: {"Authorization": "Bearer $token"},
-//                     headers: {},
-//                     body: '{"body" : "Salam"}',
-//                   );
