@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:chat_dodo/data/message_service.dart';
 import 'package:chat_dodo/widgets/title_item.dart';
 import 'package:flutter/material.dart';
 import 'package:stomp_dart_client/stomp.dart';
@@ -5,6 +8,7 @@ import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
 
 import '../core/assets.dart';
+import '../data/message_res_model.dart';
 import '../widgets/chat_item.dart';
 
 class ChatPage extends StatefulWidget {
@@ -19,17 +23,21 @@ class _ChatPageState extends State<ChatPage> {
   late StompClient client;
   TextEditingController txtController = TextEditingController();
   FocusNode txtNode = FocusNode();
+  bool isLoading = true;
+  bool isError = false;
+  MessageResModel? data;
+  ValueNotifier<bool> messageButton = ValueNotifier<bool>(false);
 
   void onConnectCallback(StompFrame connectFrame) {
     client.subscribe(
       destination: '/users/newMessage',
       headers: {},
       callback: (frame) {
-        print(frame.body);
-        print('it worked');
+        final value = Content.fromJson(json.decode(frame.body!));
+        data!.content!.add(value);
+        setState(() {});
       },
     );
-    print("i think i work");
   }
 
   @override
@@ -42,6 +50,16 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void initState() {
+    MessageService().getMessage(widget.token).then((value) {
+      if (value != null) {
+        data = value;
+        isError = false;
+      } else {
+        isError = true;
+      }
+      isLoading = false;
+      setState(() {});
+    });
     client = StompClient(
       config: StompConfig.SockJS(
         url:
@@ -74,17 +92,41 @@ class _ChatPageState extends State<ChatPage> {
           child: Column(
             children: [
               Expanded(
-                child: ListView(
-                  children: [
-                    for (int i = 0; i < 20; i++)
-                      Column(
-                        children: [
-                          TitleItem(),
-                          ChatItem(),
-                        ],
-                      ),
-                  ],
-                ),
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: const Color(0xff694BFF),
+                        ),
+                      )
+                    : isError
+                        ? Center(
+                            child: Text(
+                              "Error",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemBuilder: (context, index) {
+                              return Column(
+                                children: [
+                                  TitleItem(
+                                    name: data!.content![index]!
+                                            .isSentByCurrentUser!
+                                        ? "You"
+                                        : data!.content![index]!.author!
+                                            .metadata!.displayName!,
+                                  ),
+                                  ChatItem(
+                                    message: data!.content![index]!.body!,
+                                  ),
+                                ],
+                              );
+                            },
+                            itemCount: data!.content!.length,
+                          ),
               ),
               Container(
                 margin: EdgeInsets.only(
@@ -105,6 +147,13 @@ class _ChatPageState extends State<ChatPage> {
                     TextField(
                       focusNode: txtNode,
                       controller: txtController,
+                      onChanged: (value) {
+                        if (value.isNotEmpty) {
+                          messageButton.value = true;
+                        } else {
+                          messageButton.value = false;
+                        }
+                      },
                       decoration: const InputDecoration(
                         border: InputBorder.none,
                         hintText: 'Send message to Phillip Collins',
@@ -126,11 +175,28 @@ class _ChatPageState extends State<ChatPage> {
                           Assets.attach,
                           height: 24,
                         ),
-                        Spacer(),
-                        Image.asset(
-                          Assets.send,
-                          height: 24,
-                        ),
+                        const Spacer(),
+                        ValueListenableBuilder<bool>(
+                            valueListenable: messageButton,
+                            builder: (context, val, _) {
+                              return InkWell(
+                                onTap: () {
+                                  if (!isError) {
+                                    client.send(
+                                      destination:
+                                          '/ws/v1/conversations/CN9556bcc9a7154218a5d97ac572a35671/sendMessage',
+                                      headers: {},
+                                      body:
+                                          '{"body" : "${txtController.text}"}',
+                                    );
+                                  }
+                                },
+                                child: Image.asset(
+                                  val ? Assets.activeSend : Assets.send,
+                                  height: 24,
+                                ),
+                              );
+                            }),
                       ],
                     )
                   ],

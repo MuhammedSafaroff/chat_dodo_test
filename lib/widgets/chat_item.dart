@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ChatItem extends StatelessWidget {
-  const ChatItem({Key? key}) : super(key: key);
+  const ChatItem({Key? key, required this.message}) : super(key: key);
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +31,8 @@ class ChatItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: SelectableText(
-                  "You diuwhdu dshduhsi suidhsuhdu s dgysgiudhiu",
-                  style: TextStyle(
+                  message,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
                   ),
