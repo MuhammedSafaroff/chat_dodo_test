@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 class ChatItem extends StatelessWidget {
-  const ChatItem({Key? key, required this.message}) : super(key: key);
+  const ChatItem(
+      {Key? key, required this.message, required this.isSentByCurrentUser})
+      : super(key: key);
   final String message;
+  final bool isSentByCurrentUser;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +30,9 @@ class ChatItem extends StatelessWidget {
                 ),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFABDBD5).withOpacity(0.15),
+                  color: isSentByCurrentUser
+                      ? const Color(0xFFABDBD5).withOpacity(0.15)
+                      : const Color(0xFFF8F9FB),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: SelectableText(
