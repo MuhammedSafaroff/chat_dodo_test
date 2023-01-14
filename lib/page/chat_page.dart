@@ -136,6 +136,9 @@ class _ChatPageState extends State<ChatPage> {
                                       ),
                                     ChatItem(
                                       message: data!.content![index]!.body!,
+                                      isSentByCurrentUser: data!
+                                          .content![index]!
+                                          .isSentByCurrentUser!,
                                     ),
                                   ],
                                 ),
