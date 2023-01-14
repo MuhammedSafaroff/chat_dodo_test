@@ -45,7 +45,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ChatPage(token: token1),
+                      builder: (context) =>
+                          ChatPage(token: token1, title: "User 1"),
                     ),
                   );
                 },
@@ -76,7 +77,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ChatPage(token: token2),
+                      builder: (context) => ChatPage(
+                        token: token2,
+                        title: "User 2",
+                      ),
                     ),
                   );
                 },

@@ -17,7 +17,7 @@ class MessageService {
           .copyWith(
               baseUrl:
                   "https://conversation.chatdodo.xyz/api/v1/conversations/CN9556bcc9a7154218a5d97ac572a35671/")));
-      final value = MessageResModel.fromJson(_result.data!);
+      var value = MessageResModel.fromJson(_result.data!);
       return value;
     } catch (e) {
       return null;

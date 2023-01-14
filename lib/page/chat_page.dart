@@ -12,8 +12,10 @@ import '../data/message_res_model.dart';
 import '../widgets/chat_item.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({Key? key, required this.token}) : super(key: key);
+  const ChatPage({Key? key, required this.token, required this.title})
+      : super(key: key);
   final String token;
+  final String title;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -34,8 +36,11 @@ class _ChatPageState extends State<ChatPage> {
       headers: {},
       callback: (frame) {
         final value = Content.fromJson(json.decode(frame.body!));
+        data!.content = data!.content!.toList().reversed.toList();
         data!.content!.add(value);
+        data!.content = data!.content!.toList().reversed.toList();
         setState(() {});
+        print(frame.body);
       },
     );
   }
@@ -53,6 +58,9 @@ class _ChatPageState extends State<ChatPage> {
     MessageService().getMessage(widget.token).then((value) {
       if (value != null) {
         data = value;
+
+        data!.content = data!.content!.toList().reversed.toList();
+
         isError = false;
       } else {
         isError = true;
@@ -79,7 +87,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Chat page"),
+        title: Text(widget.title),
         centerTitle: false,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -99,33 +107,45 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                       )
                     : isError
-                        ? Center(
+                        ? const Center(
                             child: Text(
                               "Error",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           )
-                        : ListView.builder(
-                            itemBuilder: (context, index) {
-                              return Column(
-                                children: [
-                                  TitleItem(
-                                    name: data!.content![index]!
-                                            .isSentByCurrentUser!
-                                        ? "You"
-                                        : data!.content![index]!.author!
-                                            .metadata!.displayName!,
-                                  ),
-                                  ChatItem(
-                                    message: data!.content![index]!.body!,
-                                  ),
-                                ],
-                              );
-                            },
-                            itemCount: data!.content!.length,
+                        : ListView(
+                            reverse: true,
+                            children: [
+                              for (int index = 0;
+                                  index < data!.content!.length;
+                                  index++)
+                                Column(
+                                  children: [
+                                    if (index != data!.content!.length - 1 &&
+                                        data!.content![index]!.authorId !=
+                                            data!.content![index + 1]!.authorId)
+                                      TitleItem(
+                                        name: data!.content![index]!
+                                                .isSentByCurrentUser!
+                                            ? "You"
+                                            : data!.content![index]!.author!
+                                                .metadata!.displayName!,
+                                      ),
+                                    ChatItem(
+                                      message: data!.content![index]!.body!,
+                                    ),
+                                  ],
+                                ),
+                              TitleItem(
+                                name: data!.content!.last!.isSentByCurrentUser!
+                                    ? "You"
+                                    : data!.content!.last!.author!.metadata!
+                                        .displayName!,
+                              ),
+                            ],
                           ),
               ),
               Container(
@@ -152,6 +172,17 @@ class _ChatPageState extends State<ChatPage> {
                           messageButton.value = true;
                         } else {
                           messageButton.value = false;
+                        }
+                      },
+                      onSubmitted: (value) {
+                        if (!isError && txtController.text.isNotEmpty) {
+                          client.send(
+                            destination:
+                                '/ws/v1/conversations/CN9556bcc9a7154218a5d97ac572a35671/sendMessage',
+                            headers: {},
+                            body: '{"body" : "${txtController.text}"}',
+                          );
+                          txtController.clear();
                         }
                       },
                       decoration: const InputDecoration(
@@ -181,7 +212,8 @@ class _ChatPageState extends State<ChatPage> {
                             builder: (context, val, _) {
                               return InkWell(
                                 onTap: () {
-                                  if (!isError) {
+                                  if (!isError &&
+                                      txtController.text.isNotEmpty) {
                                     client.send(
                                       destination:
                                           '/ws/v1/conversations/CN9556bcc9a7154218a5d97ac572a35671/sendMessage',
@@ -189,6 +221,7 @@ class _ChatPageState extends State<ChatPage> {
                                       body:
                                           '{"body" : "${txtController.text}"}',
                                     );
+                                    txtController.clear();
                                   }
                                 },
                                 child: Image.asset(
