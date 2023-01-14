@@ -1,8 +1,6 @@
-import 'package:chat_dodo/chat_page.dart';
 import 'package:flutter/material.dart';
-import 'package:stomp_dart_client/stomp.dart';
-import 'package:stomp_dart_client/stomp_config.dart';
-import 'package:stomp_dart_client/stomp_frame.dart';
+
+import 'chat_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
